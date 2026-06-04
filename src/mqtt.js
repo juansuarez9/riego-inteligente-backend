@@ -34,17 +34,14 @@ function initMqtt(io) {
       );
 
       const now = new Date();
+      const timeZone = "America/Bogota";
 
-      data.fecha = now.toLocaleDateString(
-        "es-CO"
-      );
+      data.fecha = now.toLocaleDateString("es-CO", { timeZone });
 
-      data.hora = now.toLocaleTimeString(
-        "es-CO",
-        {
-          hour12: false
-        }
-      );
+      data.hora = now.toLocaleTimeString("es-CO", {
+        timeZone,
+        hour12: false
+      });
 
       data.timestamp =
         now.toISOString();
