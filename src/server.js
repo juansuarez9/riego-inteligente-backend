@@ -15,69 +15,63 @@ const {
 
 const app = express();
 
-app.use(cors());
+const PORT = process.env.PORT || 3000;
+
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:3000"
+].filter(Boolean);
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 
 app.use(express.json());
 
 app.get("/", (req, res) => {
-
-  res.send(
-    "Backend IoT funcionando"
-  );
-
+  res.send("Backend IoT funcionando");
 });
 
-app.get(
-  "/api/data/latest",
-  (req, res) => {
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "Servidor activo",
+    time: new Date().toISOString()
+  });
+});
 
-    res.json({
-      success: true,
-      data: getLatestData()
-    });
+app.get("/api/data/latest", (req, res) => {
+  res.json({
+    success: true,
+    data: getLatestData()
+  });
+});
 
-  }
-);
+app.get("/api/data/history", (req, res) => {
+  const limit = parseInt(req.query.limit || "500");
 
-app.get(
-  "/api/data/history",
-  (req, res) => {
+  res.json({
+    success: true,
+    data: getHistoryData(limit)
+  });
+});
 
-    const limit =
-      parseInt(
-        req.query.limit || "500"
-      );
-
-    res.json({
-      success: true,
-      data: getHistoryData(limit)
-    });
-
-  }
-);
-
-const server =
-  http.createServer(app);
+const server = http.createServer(app);
 
 const io = new Server(server, {
-
   cors: {
-    origin: "*"
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   }
-
 });
 
 initSocket(io);
-
 initMqtt(io);
 
-server.listen(
-  process.env.PORT,
-  () => {
-
-    console.log(
-      `Servidor iniciado en puerto ${process.env.PORT}`
-    );
-
-  }
-);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Servidor iniciado en puerto ${PORT}`);
+});
